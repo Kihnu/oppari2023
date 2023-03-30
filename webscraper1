@@ -1,0 +1,72 @@
+# Importttaa tarvittavat kirjastot
+from bs4 import BeautifulSoup
+from lxml import etree
+import requests
+import time
+import pandas as pd
+
+# Vakiot 
+# Muuttaa header omanlaiseksi, pitäisi näkyä oma sähköposti
+HEADERS = ({'User-Agent':
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 \
+            (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36',\
+            'Accept-Language': 'en-US, en;q=0.5'})
+
+URL = "https://www.jobly.fi/tyopaikat?search=python&job_geo_location=&Etsi+ty%C3%B6paikkoja=Etsi+ty%C3%B6paikkoja&lat=&lon=&country=&administrative_area_level_1="
+
+URL2 = "https://www.jobly.fi/tyopaikat"
+
+# Jobly.fi URL listaus ohjelmointikielten hauilla
+# python, kotlin, php, CSS, Ruby, typescript, scala, sql, html, perl, react, java, javascript, C++
+URL3 =  ["?search=python&job_geo_location=&Etsi+työpaikkoja=Etsi+työpaikkoja&lat=&lon=&country=&administrative_area_level_1=","kotlin&job_geo_location=&Etsi+työpaikkoja=Etsi+työpaikkoja&lat=&lon=&country=&administrative_area_level_1=", "?search=PHP&job_geo_location=&Etsi+työpaikkoja=Etsi+työpaikkoja&lat=&lon=&country=&administrative_area_level_1=",  "?search=CSS&job_geo_location=&Etsi+työpaikkoja=Etsi+työpaikkoja&lat=&lon=&country=&administrative_area_level_1=", "?search=ruby&job_geo_location=&Etsi+työpaikkoja=Etsi+työpaikkoja&lat=61.92410999999999&lon=25.748151&country=Suomi&administrative_area_level_1=undefined", "?search=typescript&job_geo_location=&Etsi+työpaikkoja=Etsi+työpaikkoja&lat=61.92410999999999&lon=25.748151&country=Suomi&administrative_area_level_1=undefined", "?search=scala&job_geo_location=&Etsi+työpaikkoja=Etsi+työpaikkoja&lat=61.92410999999999&lon=25.748151&country=Suomi&administrative_area_level_1=undefined", "?search=sql&job_geo_location=&Etsi_työpaikkoja=Etsi työpaikkoja&lat=61.92410999999999&lon=25.748151&country=Suomi&administrative_area_level_1=undefined", "/ohjelmistokehitys?search=html&job_geo_location=Suomi&Etsi_työpaikkoja=Etsi työpaikkoja&lat=61.92410999999999&lon=25.748151&country=Suomi&administrative_area_level_1=undefined", "?search=perl&job_geo_location=&Etsi_työpaikkoja=Etsi työpaikkoja&lat=61.92410999999999&lon=25.748151&country=Suomi&administrative_area_level_1=undefined", "/ohjelmistokehitys?search=react&job_geo_location=Suomi&Etsi_työpaikkoja=Etsi työpaikkoja&lat=61.92410999999999&lon=25.748151&country=Suomi&administrative_area_level_1=undefined" ,"/ohjelmistokehitys?search=java&job_geo_location=Suomi&Etsi+työpaikkoja=Etsi+työpaikkoja&lat=61.92410999999999&lon=25.748151&country=Suomi&administrative_area_level_1=undefined", "?search=javascript&job_geo_location=&Etsi+työpaikkoja=Etsi+työpaikkoja&lat=61.92410999999999&lon=25.748151&country=Suomi&administrative_area_level_1=undefined", "?search=C%2B%2B&job_geo_location=&Etsi+työpaikkoja=Etsi+työpaikkoja&lat=61.92410999999999&lon=25.748151&country=Suomi&administrative_area_level_1=undefined"]
+
+
+# Lista haetuille työpaikkojen määrälle haettaessa tietyllä hakusanalla
+lista = []
+
+# For loop
+for i in range(0, 14):
+
+    # create soap object
+    webpage = requests.get(URL2 + URL3[i], headers=HEADERS)
+    soup = BeautifulSoup(webpage.content, "html.parser")
+    dom = etree.HTML(str(soup))
+
+    # XPath tag, josta saa avointen paikkojen määrä
+    # /html/body/div[1]/div[2]/div/div[1]/div/div/div[1]/div[2]/h1
+    # raaka = dom.xpath('/html/body/div[1]/div[2]/div/div[1]/div/div/div[1]/div[2]/h1')[0].text
+    raaka = dom.xpath('/html/body/div[1]/div[2]/div/div[1]/div/div/div[1]/div[2]/h1')[0].text
+
+    # Tarkistaa onko numeroita stringissä
+    numeerinen_filter = filter(str.isdigit, raaka)
+
+    # Yhdistetään filtteroidut numerot stringiksi
+    numeerinen_string =  "".join(numeerinen_filter)
+
+    # Demo list
+    lista.append(numeerinen_string)
+    print(lista)
+
+
+    # Ohjelma nukkuu 10 sekunttia
+    # robots.txt määrittää hakunopeuden 1 sivu per 10 sekunttia
+    time.sleep(10)
+
+
+    # Avataan tiedosto
+    file = open('jobly.csv', 'a')
+
+# python, kotlin, php, CSS, Ruby, typescript, scala, sql, html, perl, react, java, javascript, C++
+
+# Sanakirja
+sanakirja = {'Python':lista[0], 'Kotlin':lista[1], 'PHP':lista[2], 'CSS':lista[3], 'Ruby':lista[4], 'Typescript':lista[5], 'Scala':lista[6],'SQL':lista[7] ,'HTML':lista[8] ,'Perl':lista[9] , 'React':lista[10], 'Java':lista[11] , 'Javascript':lista[12], 'C++':lista[13]}
+
+
+print(sanakirja)
+df = pd.DataFrame(sanakirja, index=[1])
+print(df)
+to_csv = df.to_csv('C:/Oppari/Excel csv/jobly.csv', mode='a', index= False, header=False)
+
+# tarkistus
+print("Tiedot lisätty onnistuneesti")
+
