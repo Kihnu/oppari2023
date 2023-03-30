@@ -1,0 +1,62 @@
+# import necessary libraries
+from bs4 import BeautifulSoup
+from lxml import etree
+import requests
+import time
+import pandas as pd
+
+# Vakiot 
+# Muuttaa header omanlaiseksi, pitäisi näkyä oma sähköposti
+HEADERS = ({'User-Agent':
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 \
+            (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36',\
+            'Accept-Language': 'en-US, en;q=0.5'})
+
+URL = "https://www.jobly.fi/tyopaikat?search=python&job_geo_location=&Etsi+ty%C3%B6paikkoja=Etsi+ty%C3%B6paikkoja&lat=&lon=&country=&administrative_area_level_1="
+
+URL2 = "https://duunitori.fi/"
+
+# Duunitori URL listaus ohjelmointikielten hauilla
+# python, kotlin, php, CSS, Ruby, typescript, scala, sql, html, perl, , react, java, javascript, C++
+URL3 =  ["tyopaikat/suomi/python", "tyopaikat/suomi/kotlin", "tyopaikat/suomi/php", "tyopaikat/suomi/css","tyopaikat/suomi/ruby", "tyopaikat/suomi/typescript", "tyopaikat/suomi/scala", "tyopaikat/suomi/sql", "tyopaikat/suomi/html", "tyopaikat/suomi/perl", "tyopaikat?haku=react%3BOhjelmointi ja ohjelmistokehitys (ala)", "tyopaikat/suomi/java", "tyopaikat/suomi/javascript", "tyopaikat/suomi/C++"]
+
+
+# Lista haetuille työpaikkojen määrälle haettaessa tietyllä hakusanalla
+lista = []
+
+# For loop
+for i in range(0, 14):
+
+    # create soap object
+    webpage = requests.get(URL2 + URL3[i], headers=HEADERS)
+    soup = BeautifulSoup(webpage.content, "html.parser")
+    dom = etree.HTML(str(soup))
+
+    # XPath tag, josta saa avointen paikkojen määrä
+    # /html/body/div[7]/div/div/div/h5/b[1]
+    raaka = dom.xpath('/html/body/div[7]/div/div/div/h5/b[1]')[0].text
+
+    # Tarkistaa onko numeroita stringissä
+    numeerinen_filter = filter(str.isdigit, raaka)
+
+    # Yhdistetään filtteroidut numerot stringiksi
+    numeerinen_string =  "".join(numeerinen_filter)
+
+    # Demo list
+    lista.append(numeerinen_string)
+    print(lista)
+
+    # Ohjelma nukkuu 4 sekunttia, joka kierros
+    time.sleep(4)
+
+# python, kotlin, php, CSS, Ruby, typescript, scala, sql, html, perl, react, java, javascript, C++
+# Sanakirja
+sanakirja = {'Python':lista[0], 'kotlin':lista[1], 'PHP':lista[2], 'CSS':lista[3], 'Ruby':lista[4], 'Typescript':lista[5], 'Scala':lista[6],'SQL':lista[7] , 'HTML':lista[8] ,'Perl':lista[9], 'React':lista[10], 'Java':lista[11], 'Javascript':lista[12], 'C++':lista[13]}
+
+print(sanakirja)
+df = pd.DataFrame(sanakirja, index=[1])
+print(df)
+to_csv = df.to_csv('C:/Oppari/Excel csv/duunitori.csv', mode='a', index= False, header=False)
+
+# tarkistus
+print("Tiedot lisätty onnistuneesti")
